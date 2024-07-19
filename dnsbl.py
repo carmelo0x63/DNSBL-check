@@ -59,16 +59,19 @@ async def check_dnsbl(ip: str, dnsbl: str, semaphore: asyncio.Semaphore):
                 else:
                     print(f'{RED}{ip} errored on {dnsbl} with {lookup}: {e}{RESET}')
 
+
 async def main(ip, concurrency):
     semaphore = asyncio.Semaphore(concurrency)
     tasks = [check_dnsbl(ip, dnsbl, semaphore) for dnsbl in DOMAINS]
     await asyncio.gather(*tasks)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'DNSBL Lookup Tool, version ' + __version__ + ', build ' + __build__ + '.')
     parser.add_argument('input', help = 'IP address or file with IP addresses')
     parser.add_argument('-c', '--concurrency', type = int, default = 20, help = 'Number of concurrent lookups')
     parser.add_argument('-v', '--verbose', action = 'store_true', help = 'Enable verbose output')
+    parser.add_argument('-V', '--version', action = 'version', version = '%(prog)s ' + __version__)
 #    args = parser.parse_args()
 
     # In case of no arguments print help message then exits

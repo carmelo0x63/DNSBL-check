@@ -4,9 +4,10 @@
 # author: Carmelo C
 # email: carmelo.califano@gmail.com
 # history, date format ISO 8601:
-#  2024-07-18: 1.0 list of DNSBL moved to external file (DNSBL_list)
-#              fixed handling of text input file (args.input -> ip)
-#              added a check to fallback to `help` (`-h`) in case of no arguments
+#   2024-07-19: 1.0 list of DNSBL moved to external file (DNSBL_list)
+#               fixed handling of text input file (args.input -> ip)
+#               added a check to fallback to `help` (`-h`) in case of no arguments
+#               added -V/--version option
 
 import argparse      # parser for command-line options, arguments and sub-commands
 import asyncio       # library to write concurrent code using the async/await syntax
@@ -23,7 +24,7 @@ except ImportError:
 
 # Global variables
 __version__ = '1.0.0'
-__build__ = '20240718'
+__build__ = '20240719'
 
 # ANSI color codes
 RED   = '\033[91m'
@@ -60,7 +61,7 @@ async def check_dnsbl(ip: str, dnsbl: str, semaphore: asyncio.Semaphore):
                     print(f'{RED}{ip} errored on {dnsbl} with {lookup}: {e}{RESET}')
 
 
-async def main(ip, concurrency):
+async def query_dnsbl(ip, concurrency):
     semaphore = asyncio.Semaphore(concurrency)
     tasks = [check_dnsbl(ip, dnsbl, semaphore) for dnsbl in DOMAINS]
     await asyncio.gather(*tasks)
@@ -72,9 +73,8 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--concurrency', type = int, default = 20, help = 'Number of concurrent lookups')
     parser.add_argument('-v', '--verbose', action = 'store_true', help = 'Enable verbose output')
     parser.add_argument('-V', '--version', action = 'version', version = '%(prog)s ' + __version__)
-#    args = parser.parse_args()
 
-    # In case of no arguments print help message then exits
+    # In case of no arguments prints help message then exits
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     try:
         ipaddress.ip_address(args.input)
-        asyncio.run(main(args.input, args.concurrency))
+        asyncio.run(query_dnsbl(args.input, args.concurrency))
     except:
         if os.path.isfile(args.input):
             with open(args.input, 'r') as file:
@@ -91,8 +91,7 @@ if __name__ == '__main__':
                     ip = line.strip()
                     try:
                         ipaddress.ip_address(ip)
-#                        asyncio.run(main(args.input, args.concurrency))
-                        asyncio.run(main(ip, args.concurrency))
+                        asyncio.run(query_dnsbl(ip, args.concurrency))
                     except:
                         logging.warning(f'Invalid IP address: {ip}')
         else:

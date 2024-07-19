@@ -19,7 +19,7 @@ from DNSBL_list import DOMAINS
 try:
     import aiodns
 except ImportError:
-    raise SystemExit('missing required library \'aiodns\' (https://pypi.org/project/aiodns/)')
+    raise SystemExit('[!] Missing required library \'aiodns\' (https://pypi.org/project/aiodns/)')
 
 # Global variables
 __version__ = '1.0.0'
